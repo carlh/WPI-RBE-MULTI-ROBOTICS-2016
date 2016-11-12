@@ -23,12 +23,18 @@ using namespace cv;
 #define CORNER_STARTING_INDEX 200
 #define PI 3.1415926535
 
+#define TOP_LEFT 200
+#define BOTTOM_LEFT 201
+#define TOP_RIGHT 202
+#define BOTTOM_RIGHT 203
+
 /* Mutex for the data sanity */
 std::mutex mtx;
 std::mutex broadcast_mtx;
 
 vector<Robot> robots;
 vector<Entity> entities;
+bool _drawGrid = false;
 
 class BT {
 public:
@@ -130,6 +136,11 @@ void runAruco(Mat image, vector<int> &markerIds, vector< vector<Point2f> > &mark
 	aruco::detectMarkers(image, dictionary, markerCorners, markerIds, parameters, rejectedCandidates);
 }
 
+void drawGrid(Mat image) {
+
+
+}
+
 /* Attends to the client on the network */
 void attendClient(int connfd, vector<Robot> robots, vector<Entity> entities){
 	socklen_t len;
@@ -170,7 +181,15 @@ void attendClient(int connfd, vector<Robot> robots, vector<Entity> entities){
 		stringstream deconstructor;
 		deconstructor << id << " " << speed << " " << sway << "\n";
 		blue.queue(deconstructor.str());
-	} else if(receive_buffer.compare("UPDATE") == 0){
+	} else if (receive_buffer.compare("DRAW_GRID") == 0) {
+        cout << ipstr << ":" << port << " requested " << endl;
+        receive_buffer = NetUtil::readFromSocket(connfd);
+        stringstream parser(receive_buffer);
+        bool drawGrid;
+        parser >> drawGrid;
+        cout << (drawGrid ? "draw grid" : "hide grid") << endl;
+        _drawGrid = drawGrid;
+    } else if(receive_buffer.compare("UPDATE") == 0){
 		cout << ipstr << ":" << port << " requested update" << endl;
 		string send_buffer;
 		for(unsigned i = 0; i < robots.size(); i++){
@@ -318,6 +337,9 @@ int main(int argc, char* argv[]){
 			thread update_thread(update, markerIds, markerCorners);
 			update_thread.detach();
 			aruco::drawDetectedMarkers(inputImage, markerCorners, markerIds);
+            if (_drawGrid) {
+                drawGrid(inputImage);
+            }
 			imshow("Tracking Vision", inputImage);
 			if(waitKey(1) == 27){break;}
 		}
