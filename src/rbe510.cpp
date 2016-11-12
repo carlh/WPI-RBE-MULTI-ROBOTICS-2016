@@ -273,6 +273,47 @@ void FieldComputer::disableVerbose(){
 	verbose = false;
 }
 
+void FieldComputer::drawGrid() {
+    int sockfd = NetUtil::getClientSocket(ip.c_str());
+    if (sockfd < 0) {
+        if (verbose) {
+            std::cout << "FieldComputer could not be reached..." << std::endl;
+        }
+        return;
+    }
+    std::stringstream strStream;
+    std::string send_buffer = "DRAW_GRID\n";
+    write(sockfd, send_buffer.c_str(), send_buffer.size());
+    send_buffer.clear();
+    strStream << true;
+    send_buffer = strStream.str();
+    write(sockfd, send_buffer.c_str(), send_buffer.size());
+    close(sockfd);
+    if (verbose) {
+        std::cout << "Requested grid drawing" << std::endl;
+    }
+}
+
+void FieldComputer::hideGrid() {
+    int sockfd = NetUtil::getClientSocket(ip.c_str());
+    if (sockfd < 0) {
+        if (verbose) {
+            std::cout << "FieldComputer could not be reached..." << std::endl;
+        }
+    }
+    std::stringstream strStream;
+    std::string send_buffer = "DRAW_GRID\n";
+    write(sockfd, send_buffer.c_str(), send_buffer.size());
+    send_buffer.clear();
+    strStream << false;
+    send_buffer = strStream.str();
+    write(sockfd, send_buffer.c_str(), send_buffer.size());
+    close(sockfd);
+    if (verbose) {
+        std::cout << "Requested grid hide" << std::endl;
+    }
+}
+
 int NetUtil::getClientSocket(const char* ip){
 	int sockfd = 0;
 	struct sockaddr_in serv_addr;

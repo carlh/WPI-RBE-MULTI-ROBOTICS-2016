@@ -104,6 +104,8 @@ public:
   	void closeGripper(int id);
 	void enableVerbose();
 	void disableVerbose();
+	void drawGrid();
+	void hideGrid();
 };
 
 
