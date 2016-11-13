@@ -36,6 +36,7 @@ vector<Robot> robots;
 vector<Entity> entities;
 
 bool _drawGrid = true;
+int _gridSpacing = 100;
 
 class BT {
 public:
@@ -208,7 +209,7 @@ void createPerspectiveTransform(Mat& perspectiveTransform) {
     sourceCorners.push_back(_field.TopRightCoord());
     sourceCorners.push_back(_field.BottomRightCoord());
     sourceCorners.push_back(_field.BottomLeftCoord());
-    
+
     vector<Point2f>destCorners;
     destCorners.push_back(Point2f(0, 0));
     destCorners.push_back(Point2f(fieldSize.width, 0));
@@ -258,11 +259,8 @@ void drawGrid(Mat image) {
     Point2f bottomLeft = _field.BottomLeftCoord();
 
     Size fieldSize = _field.Size();
-    int verticalLines = 10;
-    int horizontalLines = 10;
-
-    float vertDist = fieldSize.width / verticalLines;
-    float horizDist = fieldSize.height / horizontalLines;
+    double verticalLines = ceil(fieldSize.width / (double)_gridSpacing);
+    double horizontalLines = ceil(fieldSize.height / (double)_gridSpacing);
 
     vector<Point2f> pts;
     Point2f topLeftPt(topLeft.x, topLeft.y);
@@ -285,15 +283,15 @@ void drawGrid(Mat image) {
     bottomLeft = pts[3];
 
     for (int i = 0; i < horizontalLines; i++) {
-        Point2f startPoint(topLeft.x, topLeft.y + i * horizDist);
-        Point2f endPoint(topRight.x, topLeft.y + i * horizDist);
+        Point2f startPoint(topLeft.x, topLeft.y + i * _gridSpacing);
+        Point2f endPoint(topRight.x, topLeft.y + i * _gridSpacing);
 
         cv::line(image, startPoint, endPoint, cv::Scalar(0, 255, 255));
     }
 
     for (int i = 0; i < verticalLines; i++) {
-        Point2f startPoint(topLeft.x + i * vertDist, topLeft.y);
-        Point2f endPoint(bottomLeft.x + i * vertDist, bottomLeft.y);
+        Point2f startPoint(topLeft.x + i * _gridSpacing, topLeft.y);
+        Point2f endPoint(bottomLeft.x + i * _gridSpacing, bottomLeft.y);
         cv::line(image, startPoint, endPoint, cv::Scalar(255, 0, 255));
     }
 
