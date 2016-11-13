@@ -34,7 +34,8 @@ std::mutex broadcast_mtx;
 
 vector<Robot> robots;
 vector<Entity> entities;
-bool _drawGrid = false;
+vector<Entity> corners;
+bool _drawGrid = true;
 
 class BT {
 public:
@@ -298,6 +299,10 @@ void update( vector<int> markerIds, vector< vector<Point2f> > markerCorners) {
 			entity.set_width(2.0 * dist2pf(mp, center));
 			entity.set_height(2.0 * dist2pf(mp2, center));
 			entities.push_back(entity);
+            if (markerIds[i] >= CORNER_STARTING_INDEX) {
+                // Need to keep track of the corners separately from the rest of the entities
+                corners.push_back(entity);
+            }
 		}
 	}
 	mtx.unlock();
@@ -338,6 +343,7 @@ int main(int argc, char* argv[]){
 			update_thread.detach();
 			aruco::drawDetectedMarkers(inputImage, markerCorners, markerIds);
             if (_drawGrid) {
+                applyPerspective(inputImage);
                 drawGrid(inputImage);
             }
 			imshow("Tracking Vision", inputImage);
