@@ -14,6 +14,7 @@ else()
 endif()
 
 include_directories("${PROJECT_SOURCE_DIR}/src")
+include_directories("${PROJECT_SOURCE_DIR}/vendor")
 
 find_package (Threads)
 find_package(OpenCV REQUIRED)
@@ -21,7 +22,7 @@ find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 link_directories(${OpenCV_LIBRARY})
 
-add_executable(rbe_server ${PROJECT_SOURCE_DIR}/src/rbe_server.cpp ${PROJECT_SOURCE_DIR}/src/rbe510.cpp)
+add_executable(rbe_server ${PROJECT_SOURCE_DIR}/src/rbe_server.cpp ${PROJECT_SOURCE_DIR}/src/rbe510.cpp ${PROJECT_SOURCE_DIR}/vendor/json/jsoncpp.cpp)
 add_executable(rbe_test_client ${PROJECT_SOURCE_DIR}/src/rbe_test_client.cpp ${PROJECT_SOURCE_DIR}/src/rbe510.cpp)
 add_executable(g2p ${PROJECT_SOURCE_DIR}/src/g2p.cpp ${PROJECT_SOURCE_DIR}/src/rbe510.cpp)
 
