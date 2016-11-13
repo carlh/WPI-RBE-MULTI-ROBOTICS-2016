@@ -34,7 +34,7 @@ std::mutex broadcast_mtx;
 
 vector<Robot> robots;
 vector<Entity> entities;
-vector<Entity> corners;
+
 bool _drawGrid = true;
 
 class BT {
@@ -114,6 +114,66 @@ public:
 };
 
 BT blue;
+
+struct Field {
+private:
+    Entity _topLeft;
+    Entity _topRight;
+    Entity _bottomRight;
+    Entity _bottomLeft;
+
+public:
+    Point2f TopLeftCoord() { return Point2f(_topLeft.x(), _topLeft.y()); }
+    void SetTopLeft(Entity topLeft) { _topLeft = topLeft; }
+
+    Point2f TopRightCoord() { return Point2f(_topRight.x(), _topRight.y()); }
+    void SetTopRight(Entity topRight) { _topRight = topRight; }
+
+    Point2f BottomRightCoord() { return Point2f(_bottomRight.x(), _bottomRight.y()); }
+    void SetBottomRight(Entity bottomRight) { _bottomRight = bottomRight; }
+
+    Point2f BottomLeftCoord() { return Point2f(_bottomLeft.x(), _bottomLeft.y()); }
+    void SetBottomLeft(Entity bottomLeft) { _bottomLeft = bottomLeft; }
+
+    void CreateField(Entity topLeft, Entity topRight, Entity bottomRight, Entity bottomLeft) {
+        _topLeft = topLeft;
+        _topRight = topRight;
+        _bottomLeft = bottomLeft;
+        _bottomRight = bottomRight;
+    }
+
+    cv::Size Size() {
+        int width = static_cast<int>(_topRight.x() + _topRight.width() - _topLeft.x());
+        int height = static_cast<int>(_bottomLeft.y() - _topLeft.y());
+        return cv::Size(width, height);
+    }
+
+    bool IsValid() {
+        return !(_topLeft.id() == -1
+                 || _topRight.id() == -1
+                 || _bottomRight.id() == -1
+                 || _bottomLeft.id() == -1);
+    }
+
+public:
+    Field() {}
+};
+
+Field _field;
+
+void updateField() {
+    for (auto entity : entities) {
+        if (entity.id() == TOP_LEFT) {
+            _field.SetTopLeft(entity);
+        } else if (entity.id() == TOP_RIGHT) {
+            _field.SetTopRight(entity);
+        } else if (entity.id() == BOTTOM_RIGHT) {
+            _field.SetBottomRight(entity);
+        } else if (entity.id() == BOTTOM_LEFT) {
+            _field.SetBottomLeft(entity);
+        }
+    }
+}
 
 /* Finds distance between two points */
 float dist2pf(Point2f a, Point2f b){ return sqrt(pow(a.x - b.x,2.0) + pow(a.y -  b.y,2.0)); }
