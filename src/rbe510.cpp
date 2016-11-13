@@ -302,11 +302,34 @@ void FieldComputer::hideGrid() {
         }
     }
     std::string send_buffer = "HIDE_GRID\n";
-    write(sockfd, send_buffer.c_str(), send_buffer.size());;
+    write(sockfd, send_buffer.c_str(), send_buffer.size());
     close(sockfd);
     if (verbose) {
         std::cout << "Requested grid hide" << std::endl;
     }
+}
+
+Json::Value FieldComputer::getGridData() {
+    int sockfd = NetUtil::getClientSocket(ip.c_str());
+    if (sockfd < 0) {
+        if (verbose) {
+            std::cout << "FieldComputer could not be reached..." << std::endl;
+        }
+    }
+
+    std::string send_buffer = "FIELD_GEOMETRY\n";
+    write(sockfd, send_buffer.c_str(), send_buffer.size());
+    std::string receive_buffer;
+    std::stringstream parser;
+    while(true) {
+        receive_buffer = NetUtil::readFromSocket(sockfd);
+        if (receive_buffer.empty()) break;
+        parser << receive_buffer;
+    }
+    Json::Reader reader;
+    Json::Value receiveData;
+    reader.parse(parser.str().c_str(), receiveData);
+    return receiveData;
 }
 
 int NetUtil::getClientSocket(const char* ip){

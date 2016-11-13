@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <json/json.h>
 
 class Entity {
 private:
@@ -99,6 +100,7 @@ public:
 	FieldComputer(std::string ip);
 	FieldData getFieldData();
 	FieldData getFieldData(std::vector<int> forIds);
+	Json::Value getGridData();
 	void arcadeDrive(int id, float speed, float sway);
   	void openGripper(int id);
   	void closeGripper(int id);
