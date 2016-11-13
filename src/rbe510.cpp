@@ -273,7 +273,7 @@ void FieldComputer::disableVerbose(){
 	verbose = false;
 }
 
-void FieldComputer::drawGrid() {
+void FieldComputer::drawGrid(int gridSpacing) {
     int sockfd = NetUtil::getClientSocket(ip.c_str());
     if (sockfd < 0) {
         if (verbose) {
@@ -285,7 +285,7 @@ void FieldComputer::drawGrid() {
     std::string send_buffer = "DRAW_GRID\n";
     write(sockfd, send_buffer.c_str(), send_buffer.size());
     send_buffer.clear();
-    strStream << true;
+    strStream << gridSpacing;
     send_buffer = strStream.str();
     write(sockfd, send_buffer.c_str(), send_buffer.size());
     close(sockfd);
@@ -301,13 +301,8 @@ void FieldComputer::hideGrid() {
             std::cout << "FieldComputer could not be reached..." << std::endl;
         }
     }
-    std::stringstream strStream;
-    std::string send_buffer = "DRAW_GRID\n";
-    write(sockfd, send_buffer.c_str(), send_buffer.size());
-    send_buffer.clear();
-    strStream << false;
-    send_buffer = strStream.str();
-    write(sockfd, send_buffer.c_str(), send_buffer.size());
+    std::string send_buffer = "HIDE_GRID\n";
+    write(sockfd, send_buffer.c_str(), send_buffer.size());;
     close(sockfd);
     if (verbose) {
         std::cout << "Requested grid hide" << std::endl;
