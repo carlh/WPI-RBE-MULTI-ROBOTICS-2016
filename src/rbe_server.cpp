@@ -159,6 +159,7 @@ public:
 
     string ToJson() {
         Json::Value data = Json::objectValue;
+        data["ready"] = IsValid();
         data["topLeft"]["coordinates"]["x"] = _topLeft.x();
         data["topLeft"]["coordinates"]["y"] = _topLeft.y();
         data["topRight"]["coordinates"]["x"] = _topRight.x();
@@ -169,7 +170,7 @@ public:
         data["bottomLeft"]["coordinates"]["y"] = _bottomLeft.y();
         data["size"]["width"] = Size().width;
         data["size"]["height"] = Size().height;
-        return data.asString();
+        return data.toStyledString();
     }
 
 public:
