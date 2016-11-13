@@ -338,13 +338,17 @@ void attendClient(int connfd, vector<Robot> robots, vector<Entity> entities){
 		deconstructor << id << " " << speed << " " << sway << "\n";
 		blue.queue(deconstructor.str());
 	} else if (receive_buffer.compare("DRAW_GRID") == 0) {
-        cout << ipstr << ":" << port << " requested " << endl;
+        cout << ipstr << ":" << port << " requested show grid" << endl;
         receive_buffer = NetUtil::readFromSocket(connfd);
         stringstream parser(receive_buffer);
-        bool drawGrid;
-        parser >> drawGrid;
-        cout << (drawGrid ? "draw grid" : "hide grid") << endl;
-        _drawGrid = drawGrid;
+        int gridSpacing;
+        parser >> gridSpacing;
+        cout << "Grid Spacing: " << gridSpacing;
+        _drawGrid = true;
+        _gridSpacing = gridSpacing > 0 ? gridSpacing : 10;
+    } else if (receive_buffer.compare("HIDE_GRID") == 0) {
+        cout << ipstr << ":" << port << " requested hide grid." << endl;
+        _drawGrid = false;
     } else if(receive_buffer.compare("UPDATE") == 0){
 		cout << ipstr << ":" << port << " requested update" << endl;
 		string send_buffer;
