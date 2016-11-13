@@ -15,6 +15,7 @@
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
+#include <json/json.h>
 
 using namespace std;
 using namespace cv;
@@ -154,6 +155,21 @@ public:
                  || _topRight.id() == -1
                  || _bottomRight.id() == -1
                  || _bottomLeft.id() == -1);
+    }
+
+    string ToJson() {
+        Json::Value data = Json::objectValue;
+        data["topLeft"]["coordinates"]["x"] = _topLeft.x();
+        data["topLeft"]["coordinates"]["y"] = _topLeft.y();
+        data["topRight"]["coordinates"]["x"] = _topRight.x();
+        data["topRight"]["coordinates"]["y"] = _topRight.y();
+        data["bottomRight"]["coordinates"]["x"] = _bottomRight.x();
+        data["bottomRight"]["coordinates"]["y"] = _bottomRight.y();
+        data["bottomLeft"]["coordinates"]["x"] = _bottomLeft.x();
+        data["bottomLeft"]["coordinates"]["y"] = _bottomLeft.y();
+        data["size"]["width"] = Size().width;
+        data["size"]["height"] = Size().height;
+        return data.asString();
     }
 
 public:
@@ -361,7 +377,12 @@ void attendClient(int connfd, vector<Robot> robots, vector<Entity> entities){
 			send_buffer.append("\n");
 		}
 		write(connfd, send_buffer.c_str(), send_buffer.size());
-	} else if(receive_buffer.compare("UPDATE_ENTITIES") == 0) {
+	} else if (receive_buffer.compare("FIELD_GEOMETRY") == 0) {
+        cout << ipstr << ":" << port << " requested field geometry." << endl;
+        string send_buffer = _field.ToJson();
+        send_buffer.append("\n");
+        write(connfd, send_buffer.c_str(), send_buffer.size());
+    } else if(receive_buffer.compare("UPDATE_ENTITIES") == 0) {
 		receive_buffer = NetUtil::readFromSocket(connfd);
 		stringstream parser(receive_buffer);
 		stringstream display;
