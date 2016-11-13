@@ -197,8 +197,105 @@ void runAruco(Mat image, vector<int> &markerIds, vector< vector<Point2f> > &mark
 	aruco::detectMarkers(image, dictionary, markerCorners, markerIds, parameters, rejectedCandidates);
 }
 
-void drawGrid(Mat image) {
+void createPerspectiveTransform(Mat& perspectiveTransform) {
+    if (!_field.IsValid()) {
+        return;
+    }
 
+    Size fieldSize = _field.Size();
+    vector<Point2f> sourceCorners;
+    sourceCorners.push_back(_field.TopLeftCoord());
+    sourceCorners.push_back(_field.TopRightCoord());
+    sourceCorners.push_back(_field.BottomRightCoord());
+    sourceCorners.push_back(_field.BottomLeftCoord());
+    
+    vector<Point2f>destCorners;
+    destCorners.push_back(Point2f(0, 0));
+    destCorners.push_back(Point2f(fieldSize.width, 0));
+    destCorners.push_back(Point2f(fieldSize.width, fieldSize.height));
+    destCorners.push_back(Point2f(0, fieldSize.height));
+
+    perspectiveTransform = getPerspectiveTransform(sourceCorners, destCorners);
+}
+
+void applyPerspectiveToObjects() {
+    Mat perspectiveTransform;
+    createPerspectiveTransform(perspectiveTransform);
+
+}
+
+void applyPerspective(Mat& image) {
+    if (!_field.IsValid()) {
+        return;
+    }
+    Mat perspectiveXfrm;
+    createPerspectiveTransform(perspectiveXfrm);
+
+    warpPerspective(image, image, perspectiveXfrm, _field.Size());
+
+    vector<Point2f> entityCoords;
+
+    entityCoords.push_back(_field.TopLeftCoord());
+    entityCoords.push_back(_field.TopRightCoord());
+    entityCoords.push_back(_field.BottomRightCoord());
+    entityCoords.push_back(_field.BottomLeftCoord());
+
+    perspectiveTransform(entityCoords, entityCoords, perspectiveXfrm);
+
+    for (auto coord : entityCoords) {
+        circle(image, coord, 10, Scalar(10, 50, 255));
+    }
+}
+
+void drawGrid(Mat image) {
+    if (!_field.IsValid()) {
+        return;
+    }
+
+    Point2f topLeft = _field.TopLeftCoord();
+    Point2f topRight = _field.TopRightCoord();
+    Point2f bottomRight = _field.BottomRightCoord();
+    Point2f bottomLeft = _field.BottomLeftCoord();
+
+    Size fieldSize = _field.Size();
+    int verticalLines = 10;
+    int horizontalLines = 10;
+
+    float vertDist = fieldSize.width / verticalLines;
+    float horizDist = fieldSize.height / horizontalLines;
+
+    vector<Point2f> pts;
+    Point2f topLeftPt(topLeft.x, topLeft.y);
+    Point2f topRightPt(topRight.x, topRight.y);
+    Point2f bottomLeftPt(bottomLeft.x, bottomLeft.y);
+    Point2f bottomRightPt(bottomRight.x, bottomRight.y);
+
+    pts.push_back(topLeftPt);
+    pts.push_back(topRightPt);
+    pts.push_back(bottomRightPt);
+    pts.push_back(bottomLeftPt);
+
+
+    Mat perspectiveXfrm;
+    createPerspectiveTransform(perspectiveXfrm);
+    perspectiveTransform(pts, pts, perspectiveXfrm);
+    topLeft = pts[0];
+    topRight = pts[1];
+    bottomRight = pts[2];
+    bottomLeft = pts[3];
+
+    for (int i = 0; i < horizontalLines; i++) {
+        Point2f startPoint(topLeft.x, topLeft.y + i * horizDist);
+        Point2f endPoint(topRight.x, topLeft.y + i * horizDist);
+
+        cv::line(image, startPoint, endPoint, cv::Scalar(0, 255, 255));
+    }
+
+    for (int i = 0; i < verticalLines; i++) {
+        Point2f startPoint(topLeft.x + i * vertDist, topLeft.y);
+        Point2f endPoint(bottomLeft.x + i * vertDist, bottomLeft.y);
+        cv::line(image, startPoint, endPoint, cv::Scalar(255, 0, 255));
+    }
 
 }
 
@@ -359,12 +456,10 @@ void update( vector<int> markerIds, vector< vector<Point2f> > markerCorners) {
 			entity.set_width(2.0 * dist2pf(mp, center));
 			entity.set_height(2.0 * dist2pf(mp2, center));
 			entities.push_back(entity);
-            if (markerIds[i] >= CORNER_STARTING_INDEX) {
-                // Need to keep track of the corners separately from the rest of the entities
-                corners.push_back(entity);
-            }
 		}
 	}
+    updateField();
+    applyPerspectiveToObjects();
 	mtx.unlock();
 }
 
