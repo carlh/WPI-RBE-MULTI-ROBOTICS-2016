@@ -265,7 +265,23 @@ void applyPerspective(Mat& image) {
     }
 }
 
-void drawGrid(Mat image) {
+void transformEntities(vector<Robot>& robots, vector<Entity>& entities) {
+    Mat transformMatrix;
+    createPerspectiveTransform(transformMatrix);
+    vector<Point2f> pts;
+
+    for (int i = 0; i < entities.size(); i++) {
+        Point2f pt(entities[i].x(), entities[i].y());
+        pts.push_back(pt);
+    }
+    perspectiveTransform(pts, pts, transformMatrix);
+    for (int i = 0; i < entities.size(); i++) {
+		entities[i].set_x(pts[i].x);
+		entities[i].set_y(pts[i].y);
+    }
+}
+
+void drawGrid(Mat& const image) {
     if (!_field.IsValid()) {
         return;
     }
@@ -377,6 +393,7 @@ void attendClient(int connfd, vector<Robot> robots, vector<Entity> entities){
 			send_buffer.append(entities[i].toStr());
 			send_buffer.append("\n");
 		}
+        transformEntities(robots, entities);
 		write(connfd, send_buffer.c_str(), send_buffer.size());
 	} else if (receive_buffer.compare("FIELD_GEOMETRY") == 0) {
         cout << ipstr << ":" << port << " requested field geometry." << endl;
