@@ -279,6 +279,16 @@ void transformEntities(vector<Robot>& robots, vector<Entity>& entities) {
 		entities[i].set_x(pts[i].x);
 		entities[i].set_y(pts[i].y);
     }
+	pts.clear();
+	for (int i = 0; i < robots.size(); i++) {
+		Point2f pt(robots[i].x(), robots[i].y());
+		pts.push_back(pt);
+	}
+	perspectiveTransform(pts, pts, transformMatrix);
+	for (int i = 0; i < robots.size(); i++) {
+		robots[i].set_x(pts[i].x);
+		robots[i].set_y(pts[i].y);
+	}
 }
 
 void drawGrid(Mat& const image) {
