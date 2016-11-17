@@ -291,7 +291,7 @@ void transformEntities(vector<Robot>& robots, vector<Entity>& entities) {
 	}
 }
 
-void drawGrid(Mat& const image) {
+void drawGrid(Mat const& image) {
     if (!_field.IsValid()) {
         return;
     }
