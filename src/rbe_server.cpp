@@ -514,33 +514,120 @@ void update( vector<int> markerIds, vector< vector<Point2f> > markerCorners) {
 	mtx.unlock();
 }
 
+void printUsage() {
+    stringstream message;
+    message << "Usage: rbe_server [OPTION...]" << endl << endl;
+    message << "  -p\t\tspecify the port for server to run on (default 80)" << endl;
+    message << "  -c\t\tspecify the index of the camera to use" << endl;
+    message << "  -h\t\tdisplay this help message" << endl;
+    message << "  -i\t\tspecify the path to an image to use" << endl << endl;
+    message << "One and only one of -c or -i must be specified. If multiple options are passed, the first one wins." << endl;
+    cout << message.str();
+}
+
+bool parseOptions(int argc, char* argv[], int& errCode, Mat& inputImage, VideoCapture& cap) {
+    bool valid = false;
+    for (size_t i = 1; i < argc; i++) {
+        string opt = string(argv[i]);
+        if (opt == "-p") {
+            if (i + 1 >= argc) {
+                cerr << "Option requires an argument" << endl;
+                printUsage();
+                errCode = 5;
+                return false;
+            }
+            string port = string(argv[i + 1]);
+            blue.open(port);
+            i++;
+        } else if (opt == "-c") {
+            if (valid) {
+                i++;
+                continue;
+            }
+            if (i + 1 >= argc) {
+                cerr << "Option requires an argument" << endl;
+                printUsage();
+                errCode = 5;
+                return false;
+            }
+            int camera_index = atoi(argv[i + 1]);
+            cout << "Opening Camera" << endl;
+            cap.open(camera_index);
+            if(!cap.isOpened()){
+                cerr << "Error: Could not open camera" << endl;
+                printUsage();
+                errCode = 2;
+                return false;
+            }
+            cap.set(CV_CAP_PROP_FRAME_HEIGHT, 720);
+            cap.set(CV_CAP_PROP_FRAME_WIDTH, 1280);
+            cout << "Camera opened" << endl;
+            valid = true;
+            i++;
+        } else if (opt == "-i") {
+            if (valid) {
+                i++;
+                continue;
+            }
+            if (i + 1 >= argc) {
+                cerr << "Option requires an argument" << endl;
+                printUsage();
+                errCode = 5;
+                return false;
+            }
+            string imagePath = string(argv[i + 1]);
+            Mat image = imread(imagePath, IMREAD_COLOR);
+            if (!image.data) {
+                cerr << "Could not read image data" << endl;
+                printUsage();
+                errCode = 3;
+                return false;
+            }
+            inputImage = image.clone();
+            valid = true;
+            i++;
+        } else if (opt == "-h") {
+            printUsage();
+            errCode = 0;
+            return false;
+        }
+    }
+
+    if (!valid) {
+        printUsage();
+        errCode = 5;
+        return false;
+    }
+    errCode = 0;
+    return true;
+}
+
 int main(int argc, char* argv[]){
-    if(argc < 2) return -1;
-	for(int i = 2; i < argc; i++){
-		blue.open(string(argv[i]));
-	}
+    if(argc < 2) {
+        printUsage();
+        return 1;
+    };
 
-    int camera_index = atoi(argv[1]);
+    VideoCapture cap;
+    Mat sourceImage;
+    Mat inputImage;
+    int errCode;
+    if (!parseOptions(argc, argv, errCode, sourceImage, cap)) {
+        return errCode;
+    }
 
-	cout << "Launching network thread" << endl;
-	thread network_thread(network, std::ref(robots), std::ref(entities));
-	cout << "Detaching thread" << endl;
-	network_thread.detach();
+    cout << "Launching network thread" << endl;
+    thread network_thread(network, std::ref(robots), std::ref(entities));
+    cout << "Detaching thread" << endl;
+    network_thread.detach();
 
-	cout << "Opening Camera" << endl;
-	VideoCapture cap(camera_index);
-	if(!cap.isOpened()){
-		cout << "Error: Could not open camera" << endl;
-		return 1;
-	}
 
-	cap.set(CV_CAP_PROP_FRAME_HEIGHT, 720);
-	cap.set(CV_CAP_PROP_FRAME_WIDTH, 1280);
-
-	cout << "Camera opened" << endl;
 	while(true){
-		Mat inputImage;
-		cap >> inputImage;
+        if (cap.isOpened()) {
+            cap >> inputImage;
+        } else {
+            inputImage = sourceImage.clone();
+        }
 		if(!inputImage.empty()){
 			vector<int> markerIds;
 			vector< vector<Point2f> > markerCorners;
