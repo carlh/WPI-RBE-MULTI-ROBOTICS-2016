@@ -265,6 +265,23 @@ void applyPerspective(Mat& image) {
     }
 }
 
+void perspectiveTransformPoint(Point3d& pt, Mat transformationMatrix) {
+    vector<Point3d> pts {pt};
+    perspectiveTransform(pts, pts, transformationMatrix);
+}
+
+void perspectiveTransformGridToPixel(Point3d& pt) {
+    Mat transformMatrix;
+    createPerspectiveTransform(transformMatrix);
+    perspectiveTransformPoint(pt, transformMatrix);
+}
+
+void perspectiveTransformPixelToGrid(Point3d& pt) {
+    Mat transformMatrix;
+    createPerspectiveTransform(transformMatrix);
+    perspectiveTransformPoint(pt, transformMatrix.t());
+}
+
 void transformEntities(vector<Robot>& robots, vector<Entity>& entities) {
     Mat transformMatrix;
     createPerspectiveTransform(transformMatrix);
@@ -395,6 +412,7 @@ void attendClient(int connfd, vector<Robot> robots, vector<Entity> entities){
     } else if(receive_buffer.compare("UPDATE") == 0){
 		cout << ipstr << ":" << port << " requested update" << endl;
 		string send_buffer;
+        transformEntities(robots, entities);
 		for(unsigned i = 0; i < robots.size(); i++){
 			send_buffer.append(robots[i].toStr());
 			send_buffer.append("\n");
@@ -403,13 +421,38 @@ void attendClient(int connfd, vector<Robot> robots, vector<Entity> entities){
 			send_buffer.append(entities[i].toStr());
 			send_buffer.append("\n");
 		}
-        transformEntities(robots, entities);
 		write(connfd, send_buffer.c_str(), send_buffer.size());
 	} else if (receive_buffer.compare("FIELD_GEOMETRY") == 0) {
         cout << ipstr << ":" << port << " requested field geometry." << endl;
         string send_buffer = _field.ToJson();
         send_buffer.append("\n");
         write(connfd, send_buffer.c_str(), send_buffer.size());
+    } else if (receive_buffer.compare("GRID_TO_PIXEL") == 0) {
+        receive_buffer = NetUtil::readFromSocket(connfd);
+        stringstream parser(receive_buffer);
+        double x, y, z;
+        parser >> x >> y >> z;
+        if (!parser.fail()) {
+            Point3d pt(x, y, z);
+            perspectiveTransformGridToPixel(pt);
+
+            stringstream send_buffer;
+            send_buffer << "PIXEL_POINT" << pt.x << " " << pt.y << " " << pt.z << "\n";
+            write(connfd, send_buffer.str().c_str(), send_buffer.str().size());
+        }
+    } else if (receive_buffer.compare("PIXEL_TO_GRID") == 0) {
+        receive_buffer = NetUtil::readFromSocket(connfd);
+        stringstream parser(receive_buffer);
+        double x, y, z;
+        parser >> x >> y >> z;
+        if (!parser.fail()) {
+            Point3d pt(x, y, z);
+            perspectiveTransformPixelToGrid(pt);
+
+            stringstream send_buffer;
+            send_buffer << "GRID_POINT" << pt.x << " " << pt.y << " " << pt.z << "\n";
+            write(connfd, send_buffer.str().c_str(), send_buffer.str().size());
+        }
     } else if(receive_buffer.compare("UPDATE_ENTITIES") == 0) {
 		receive_buffer = NetUtil::readFromSocket(connfd);
 		stringstream parser(receive_buffer);
