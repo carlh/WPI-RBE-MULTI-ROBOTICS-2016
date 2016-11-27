@@ -109,8 +109,8 @@ public:
 	void disableVerbose();
 	void drawGrid(int gridSpacing);
 	void hideGrid();
-	cv::Point2i pixelToGridCoordinates(cv::Point2i goal) { return goal; }
-	cv::Point2i gridToPixelCoordinates(cv::Point2i goal) { return goal; }
+	cv::Point2i pixelToGridCoordinates(cv::Point2f goal);
+	cv::Point2i gridToPixelCoordinates(cv::Point2f goal);
 };
 
 

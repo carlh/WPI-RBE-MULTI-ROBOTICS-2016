@@ -109,6 +109,98 @@ FieldComputer::FieldComputer(std::string ip){
 	disableVerbose();
 }
 
+cv::Point2i FieldComputer::pixelToGridCoordinates(cv::Point2f goal) {
+    if (verbose) {
+        std::cout << "Requested pixel to grid coordinates for x: " << goal.x << ", y: " << goal.y << std::endl;
+    }
+    int sockfd = NetUtil::getClientSocket(ip.c_str());
+    if (sockfd < 0) {
+        if (verbose) {
+            std::cout << "FieldComputer could not be reached..." << std::endl;
+            return goal;
+        }
+    }
+
+	std::string send_buffer = "PIXEL_TO_GRID\n";
+	write(sockfd, send_buffer.c_str(), send_buffer.size());
+	send_buffer.clear();
+
+	std::stringstream str;
+	str << goal.x << " " << goal.y << std::endl;
+	send_buffer = str.str();
+	write(sockfd, send_buffer.c_str(), send_buffer.size());
+
+	cv::Point2f converted;
+
+	std::string receive_buffer;
+	while(true) {
+		receive_buffer = NetUtil::readFromSocket(sockfd);
+		if (receive_buffer.empty()) {
+			break;
+		}
+		std::stringstream parser(receive_buffer);
+		std::string type;
+		double x, y;
+		parser >> type >> x >> y;
+		if (!parser.fail()) {
+			converted.x = (int)x;
+			converted.y = (int)y;
+		}
+	}
+
+	if (verbose) {
+		std::cout << "Converted Point" << converted.x << ", " << converted.y << std::endl;
+	}
+	close(sockfd);
+    return converted;
+}
+
+cv::Point2i FieldComputer::gridToPixelCoordinates(cv::Point2f goal) {
+    if (verbose) {
+        std::cout << "Requested grid to pixel coordinates for x: " << goal.x << ", y: " << goal.y << std::endl;
+    }
+    int sockfd = NetUtil::getClientSocket(ip.c_str());
+    if (sockfd < 0) {
+        if (verbose) {
+            std::cout << "FieldComputer could not be reached..." << std::endl;
+            return goal;
+        }
+    }
+
+	std::string send_buffer = "GRID_TO_PIXEL\n";
+	write(sockfd, send_buffer.c_str(), send_buffer.size());
+	send_buffer.clear();
+
+	std::stringstream str;
+	str << goal.x << " " << goal.y << std::endl;
+	send_buffer = str.str();
+	write(sockfd, send_buffer.c_str(), send_buffer.size());
+
+	cv::Point2f converted;
+
+	std::string receive_buffer;
+	while(true) {
+		receive_buffer = NetUtil::readFromSocket(sockfd);
+		if (receive_buffer.empty()) {
+			break;
+		}
+		std::stringstream parser(receive_buffer);
+		std::string type;
+		double x, y;
+		parser >> type >> x >> y;
+		if (!parser.fail()) {
+			converted.x = (int)x;
+			converted.y = (int)y;
+		}
+	}
+
+	if (verbose) {
+		std::cout << "Converted Point" << converted.x << ", " << converted.y << std::endl;
+	}
+	close(sockfd);
+	return converted;
+}
+
 FieldData FieldComputer::getFieldData(std::vector<int> forIds) {
 	if (verbose) {
 		std::cout << "Requested field update for ";
