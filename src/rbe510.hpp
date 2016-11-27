@@ -83,6 +83,7 @@ public:
 #include <sstream>
 #include <iostream>
 #include <vector>
+#include <opencv2/opencv.hpp>
 
 struct FieldData {
 	std::vector<Robot> robots;
@@ -108,6 +109,8 @@ public:
 	void disableVerbose();
 	void drawGrid(int gridSpacing);
 	void hideGrid();
+	cv::Point2i pixelToGridCoordinates(cv::Point2i goal) { return goal; }
+	cv::Point2i gridToPixelCoordinates(cv::Point2i goal) { return goal; }
 };
 
 
