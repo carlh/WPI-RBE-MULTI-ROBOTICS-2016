@@ -109,7 +109,7 @@ FieldComputer::FieldComputer(std::string ip){
 	disableVerbose();
 }
 
-cv::Point2i FieldComputer::pixelToGridCoordinates(cv::Point2f goal) {
+cv::Point2f FieldComputer::pixelToGridCoordinates(cv::Point2f goal) {
     if (verbose) {
         std::cout << "Requested pixel to grid coordinates for x: " << goal.x << ", y: " << goal.y << std::endl;
     }
@@ -143,8 +143,8 @@ cv::Point2i FieldComputer::pixelToGridCoordinates(cv::Point2f goal) {
 		double x, y;
 		parser >> type >> x >> y;
 		if (!parser.fail()) {
-			converted.x = (int)x;
-			converted.y = (int)y;
+			converted.x = x;
+			converted.y = y;
 		}
 	}
 
@@ -155,7 +155,7 @@ cv::Point2i FieldComputer::pixelToGridCoordinates(cv::Point2f goal) {
     return converted;
 }
 
-cv::Point2i FieldComputer::gridToPixelCoordinates(cv::Point2f goal) {
+cv::Point2f FieldComputer::gridToPixelCoordinates(cv::Point2f goal) {
     if (verbose) {
         std::cout << "Requested grid to pixel coordinates for x: " << goal.x << ", y: " << goal.y << std::endl;
     }
@@ -189,8 +189,8 @@ cv::Point2i FieldComputer::gridToPixelCoordinates(cv::Point2f goal) {
 		double x, y;
 		parser >> type >> x >> y;
 		if (!parser.fail()) {
-			converted.x = (int)x;
-			converted.y = (int)y;
+			converted.x = x;
+			converted.y = y;
 		}
 	}
 

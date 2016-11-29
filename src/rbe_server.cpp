@@ -294,13 +294,13 @@ void perspectiveTransformPoint(Point2f& pt, Mat transformationMatrix) {
 
 void perspectiveTransformGridToPixel(Point2f& pt) {
     Mat transformMatrix;
-    createPerspectiveTransform(transformMatrix);
+    createInversePerspectiveTransform(transformMatrix);
     perspectiveTransformPoint(pt, transformMatrix);
 }
 
 void perspectiveTransformPixelToGrid(Point2f& pt) {
     Mat transformMatrix;
-    createInversePerspectiveTransform(transformMatrix);
+    createPerspectiveTransform(transformMatrix);
     perspectiveTransformPoint(pt, transformMatrix);
 }
 
@@ -459,7 +459,7 @@ void attendClient(int connfd, vector<Robot> robots, vector<Entity> entities){
             perspectiveTransformGridToPixel(pt);
 
             stringstream send_buffer;
-            send_buffer << "PIXEL_POINT" << pt.x << " " << pt.y << " " << "\n";
+            send_buffer << "PIXEL_POINT " << pt.x << " " << pt.y << " " << "\n";
             write(connfd, send_buffer.str().c_str(), send_buffer.str().size());
         }
     } else if (receive_buffer.compare("PIXEL_TO_GRID") == 0) {
@@ -472,7 +472,7 @@ void attendClient(int connfd, vector<Robot> robots, vector<Entity> entities){
             perspectiveTransformPixelToGrid(pt);
 
             stringstream send_buffer;
-            send_buffer << "GRID_POINT" << pt.x << " " << pt.y << "\n";
+            send_buffer << "GRID_POINT " << pt.x << " " << pt.y << "\n";
             write(connfd, send_buffer.str().c_str(), send_buffer.str().size());
         }
     } else if(receive_buffer.compare("UPDATE_ENTITIES") == 0) {
