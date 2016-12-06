@@ -27,4 +27,6 @@ add_executable(rbe_test_client ${PROJECT_SOURCE_DIR}/src/rbe_test_client.cpp ${P
 add_executable(g2p ${PROJECT_SOURCE_DIR}/src/g2p.cpp ${PROJECT_SOURCE_DIR}/src/rbe510.cpp ${PROJECT_SOURCE_DIR}/vendor/json/jsoncpp.cpp)
 
 target_link_libraries (rbe_server ${OpenCV_LIBS})
+target_link_libraries (rbe_test_client ${OpenCV_LIBS})
+target_link_libraries (g2p ${OpenCV_LIBS})
 target_link_libraries (rbe_server ${CMAKE_THREAD_LIBS_INIT})
